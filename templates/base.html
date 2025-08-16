@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en" class="transition-colors duration-300">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Library Management System{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="{% static 'css/style.css' %}" rel="stylesheet">
+
+
+
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen flex flex-col">
+
+{% if request.path == '/' %}
+<!-- Landing Video Section -->
+<div id="landing-video-section" class="relative w-full h-screen overflow-hidden flex items-center justify-center">
+  <video autoplay muted playsinline class="inset-0 w-full h-full object-cover object-center z-0">
+    <source src="{% static 'videos/landing.mp4' %}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+{% endif %}
+
+<!-- Navbar -->
+<nav class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md shadow-md sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+
+      <!-- Logo -->
+      <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">
+         SCEP Digital Library
+      </a>
+
+      <!-- Desktop Menu -->
+      <div class="hidden md:flex items-center space-x-6">
+        <a href="/" class="navbar-link transform hover:scale-105 hover:bg-indigo-200">Home</a>
+        <a href="{% url 'browse_books' %}" class="navbar-link transform hover:scale-105 hover:bg-indigo-200">Browse Books</a>
+
+        {% if user.is_authenticated %}
+          {% if user.is_librarian %}
+            <a href="{% url 'librarian_dashboard' %}" class="navbar-btn bg-indigo-500 text-white hover:bg-indigo-700">Librarian Dashboard</a>
+            <a href="{% url 'add_book' %}" class="navbar-btn bg-green-500 text-white hover:bg-green-700"> Add Book</a>
+          {% elif user.is_teacher %}
+            <a href="{% url 'teacher_dashboard' %}" class="navbar-btn bg-indigo-600 text-white hover:bg-indigo-700">Teacher Dashboard</a>
+          {% else %}
+            <a href="/accounts/profile/" class="navbar-link">Profile</a>
+          {% endif %}
+          <a href="/accounts/logout/" class="navbar-link text-red-500 hover:text-red-600">Logout</a>
+        {% else %}
+          <div class="relative">
+            <button onclick="toggleDropdown()" class="navbar-btn  text-sm-500 hover:bg-indigo-200 dark:hover:bg-gray-600 flex items-center transform hover:scale-105 transition duration-300">
+              Login <i class="fa-solid fa-chevron-down ml-2"></i>
+            </button>
+            <div id="loginDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded shadow-lg ring-1 ring-black ring-opacity-5">
+              <a href="{% url 'login' %}" class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">Student Login</a>
+              <a href="{% url 'librarian_login' %}" class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">Librarian Login</a>
+              <a href="{% url 'teacher_login' %}" class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">Teacher Login</a>
+            </div>
+          </div>
+          <a href="/accounts/register/" class="navbar-btn   text-sm-500 hover:bg-indigo-200 transform hover:scale-105">Register</a>
+        {% endif %}
+      </div>
+
+      <!-- Mobile menu button -->
+      <div class="md:hidden flex items-center">
+        <button onclick="toggleMobileMenu()" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+          <i class="fas fa-bars fa-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="hidden md:hidden bg-white dark:bg-gray-800 px-4 pt-4 pb-2 space-y-2 transition-all duration-300 ease-in-out overflow-hidden max-h-0">
+    <a href="/" class="navbar-link block">Home</a>
+    <a href="{% url 'browse_books' %}" class="navbar-link block">Browse Books</a>
+
+    {% if user.is_authenticated %}
+      {% if user.is_librarian %}
+        <a href="{% url 'librarian_dashboard' %}" class="navbar-link block">Librarian Dashboard</a>
+        <a href="{% url 'add_book' %}" class="text-green-600 dark:text-green-400 block font-medium hover:text-green-700"> Add Book</a>
+      {% elif user.is_teacher %}
+        <a href="{% url 'teacher_dashboard' %}" class="navbar-link block">Teacher Dashboard</a>
+      {% else %}
+        <a href="/accounts/profile/" class="navbar-link block">Profile</a>
+      {% endif %}
+      <a href="/accounts/logout/" class="text-red-500 block font-medium hover:text-red-600">Logout</a>
+    {% else %}
+      <div class="border-t pt-2">
+        <a href="{% url 'login' %}" class="navbar-link block">Student Login</a>
+        <a href="{% url 'librarian_login' %}" class="navbar-link block">Librarian Login</a>
+        <a href="{% url 'teacher_login' %}" class="navbar-link block">Teacher Login</a>
+      </div>
+      <a href="/accounts/register/" class="navbar-link block text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 mt-2">Register</a>
+    {% endif %}
+  </div>
+</nav>
+
+{% if messages %}
+<div class="fixed top-5 right-5 z-50 space-y-3" id="toast-messages">
+{% for message in messages %}
+  <div id="toast-message-{{ forloop.counter }}" class="relative px-6 py-4 rounded shadow-lg text-white transition-all duration-300 ease-in-out
+    {% if message.tags == 'success' %}bg-green-600
+    {% elif message.tags == 'error' %}bg-red-600
+    {% elif message.tags == 'warning' %}bg-yellow-500
+    {% else %}bg-blue-600{% endif %}" role="alert">
+    <span class="block">{{ message }}</span>
+    <button class="absolute top-1 right-2 text-xl text-white hover:text-gray-300" onclick="this.parentElement.remove();">&times;</button>
+  </div>
+{% endfor %}
+</div>
+<script>
+  setTimeout(() => {
+    document.querySelectorAll('[id^="toast-message-"]').forEach(el => el.remove());
+  }, 5000);
+</script>
+{% endif %}
+
+<!-- Quote of the Day -->
+<div class="text-center text-xs italic text-gray-600 dark:text-gray-300 mt-4">
+  {% block quote %}{% endblock %}
+</div>
+
+<!-- Main Content -->
+<main class="flex-grow py-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-white/90 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-inner mt-10">
+  <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-sm text-gray-600 dark:text-gray-300">
+
+    <!-- About Us -->
+    <div class="transition-transform duration-300 hover:scale-[1.02]">
+      <h3 class="text-gray-900 dark:text-white font-semibold text-lg mb-3">About Us</h3>
+      <p class="leading-relaxed transition-all duration-300 hover:scale-[1.01]">
+        Satpuda College Library is dedicated to empowering students with a modern reading experience,
+        offering access to knowledge through physical and digital resources.
+      </p>
+    </div>
+
+    <!-- Important Links -->
+    <div>
+      <h3 class="text-gray-900 dark:text-white font-semibold text-lg mb-3">Important Links</h3>
+      <ul class="space-y-2">
+        <li><a href="{% url 'home' %}" class="transition duration-200 hover:text-blue-500 hover:underline">Home</a></li>
+        <li><a href="{% url 'browse_books' %}" class="transition duration-200 hover:text-blue-500 hover:underline">Browse Books</a></li>
+        <li><a href="{% url 'login' %}" class="transition duration-200 hover:text-blue-500 hover:underline">Student Login</a></li>
+      </ul>
+    </div>
+
+    <!-- Connect With Us -->
+    <div>
+      <h3 class="text-gray-900 dark:text-white font-semibold text-lg mb-3">Connect With Us</h3>
+      <ul class="space-y-2">
+        <li class="flex items-center space-x-2 group">
+          <i class="fab fa-facebook-f text-blue-600 group-hover:scale-125 transform transition duration-200"></i>
+          <a href="#" class="hover:text-blue-500 transition duration-200">Facebook</a>
+        </li>
+        <li class="flex items-center space-x-2 group">
+          <i class="fab fa-x-twitter text-black group-hover:scale-125 transform transition duration-200"></i>
+          <a href="#" class="hover:text-black transition duration-200"> X </a>
+        </li>
+        <li class="flex items-center space-x-2 group">
+          <i class="fab fa-instagram text-pink-600 group-hover:scale-125 transform transition duration-200"></i>
+          <a href="#" class="hover:text-pink-600 transition duration-200">Instagram</a>
+        </li>
+        <li class="flex items-center space-x-2 group">
+          <i class="fab fa-youtube text-red-600 group-hover:scale-125 transform transition duration-200"></i>
+          <a href="#" class="hover:text-red-600 transition duration-200">YouTube</a>
+        </li>
+
+      </ul>
+    </div>
+
+    <!-- Contact -->
+    <div>
+      <h3 class="text-gray-900 dark:text-white font-semibold text-lg mb-3">Contact</h3>
+      <p class="mb-2 transition-all duration-200 hover:pl-2"><i class="fas fa-map-marker-alt mr-2 text-gray-500"></i> Satpuda Campus, Balaghat, MP</p>
+      <p class="mb-2 transition-all duration-200 hover:pl-2"><i class="fas fa-envelope mr-2 text-gray-500"></i> satpudalibrary@scep.ac.in</p>
+      <p class="transition-all duration-200 hover:pl-2"><i class="fas fa-phone-alt mr-2 text-gray-500"></i> +91 98765 43210</p>
+    </div>
+  </div>
+
+  <!-- Bottom -->
+  <div class="border-t bg-red-300 border-gray-300 dark:border-gray-700 py-4 text-center text-xs text-gray-500 dark:text-gray-400">
+    &copy; <span class="hover:underline transition duration-200">Satpuda College Library</span>. Developed with
+    <span class="text-red-800 animate-pulse">❤️</span> by
+    <span class="text-blue-600 dark:text-blue-400 font-medium hover:underline transition duration-200">Ankush Nandagouli</span>.
+
+  </div>
+
+</footer>
+  <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

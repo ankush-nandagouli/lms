@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto p-6 bg-white shadow rounded">
+  <h2 class="text-2xl font-bold text-indigo-700 mb-4">👤 {{ student.username }}'s Profile</h2>
+  <p><strong>Email:</strong> {{ student.email }}</p>
+  <p><strong>Full Name:</strong> {{ profile.full_name }}</p>
+  <p><strong>Mobile:</strong> {{ profile.mobile_number }}</p>
+  <p><strong>Course:</strong> {{ profile.course }}</p>
+  <p><strong>Year:</strong> {{ profile.year_of_study }}</p>
+  <p><strong>Address:</strong> {{ profile.address }}</p>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- ✅ Success/Error Message Box with Close Button -->
+{% if messages %}
+  <div class="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+    {% for message in messages %}
+      <div class="flex items-start justify-between p-4 rounded-lg shadow-md text-white
+                  {% if message.tags == 'success' %}bg-green-500{% elif message.tags == 'error' %}bg-red-500
+                  {% elif message.tags == 'warning' %}bg-yellow-500{% else %}bg-blue-500{% endif %}"
+           id="alert-{{ forloop.counter }}">
+        <span>{{ message }}</span>
+        <button onclick="closeAlert('alert-{{ forloop.counter }}')" class="ml-4 text-xl leading-none hover:opacity-80">×</button>
+      </div>
+    {% endfor %}
+  </div>
+
+  <script>
+    function closeAlert(id) {
+      const alertBox = document.getElementById(id);
+      if (alertBox) alertBox.remove();
+    }
+    setTimeout(() => {
+      document.querySelectorAll("[id^='alert-']").forEach(el => el.remove());
+    }, 10000);
+  </script>
+{% endif %}
+
+<!-- 🟪 Book Search Form -->
+<div class="max-w-7xl mx-auto p-4">
+  <h2 class="text-2xl font-bold mb-6 text-center text-indigo-600">📚 Browse Books</h2>
+
+  <form id="searchForm" method="GET" class="flex flex-col sm:flex-row items-center mb-8 gap-3">
+    <input type="text" name="q" id="searchInput" value="{{ query }}"
+           placeholder="Search by title, author, or description..."
+           class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+
+    <select name="category" id="categorySelect"
+            class="px-4 py-2 border rounded-md dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+      <option value="">All Categories</option>
+{% for code, label in categories %}
+  <option value="{{ code }}" {% if code == category_filter %}selected{% endif %}>{{ label }}</option>
+{% endfor %}
+
+    </select>
+
+    <button type="submit"
+            class="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600">
+      Search
+    </button>
+  </form>
+
+
+
+  <!-- 🟨 Book Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    {% for book in page_obj %}
+      <div onclick="openModal(
+          '{{ book.id }}',
+          '{{ book.title }}',
+          '{{ book.author }}',
+          '{{ book.category }}',
+          '{{ book.description|escapejs }}',
+          '{{ book.available }}',
+          '{% if book.cover_image %}{{ book.cover_image.url }}{% endif %}',
+          '{% if book.pdf_file %}{{ book.pdf_file.url }}{% endif %}'
+        )"
+        class="cursor-pointer bg-white shadow-lg rounded-lg overflow-hidden dark:bg-gray-800 hover:shadow-xl transition duration-300">
+        {% if book.cover_image %}
+          <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full h-48 object-cover">
+        {% else %}
+          <div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500 dark:bg-gray-700">
+            No Cover
+          </div>
+        {% endif %}
+        <div class="p-4">
+          <h3 class="text-lg font-semibold mb-1">{{ book.title }}</h3>
+          <p class="text-sm text-gray-500 mb-2">by {{ book.author }}</p>
+          <p class="inline-block px-3 py-1 text-xs font-semibold bg-indigo-100 text-indigo-800 rounded-full dark:bg-indigo-700 dark:text-white">
+            {{ book.category }}
+          </p>
+          <p class="text-sm mt-3 text-gray-700 dark:text-gray-300">{{ book.description|truncatewords:20 }}</p>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-center col-span-3 text-gray-500 dark:text-gray-400">No books found matching your criteria.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- 🔳 Modal Box for Book Preview -->
+<div id="bookModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-11/12 md:w-2/3 lg:w-1/2 relative overflow-y-auto max-h-screen">
+    <button onclick="closeModal()" class="absolute top-2 right-3 text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-gray-300 text-xl">&times;</button>
+    <img id="modalCover" src="" alt="Book Cover" class="w-full h-64 object-cover mb-4 rounded-md hidden">
+    <h2 id="modalTitle" class="text-2xl font-bold mb-2 text-indigo-600"></h2>
+    <p id="modalAuthor" class="text-sm text-gray-500 mb-1"></p>
+    <p id="modalCategory" class="text-xs inline-block bg-indigo-200 text-indigo-800 px-2 py-1 rounded-full mb-4 dark:bg-indigo-700 dark:text-white"></p>
+    <p id="modalDescription" class="text-gray-700 dark:text-gray-300 mb-4"></p>
+    <span id="modalAvailability" class="inline-block text-xs font-semibold px-3 py-1 rounded mb-4"></span>
+
+    <div class="flex gap-4">
+      <a id="viewDetailsBtn" href="#" target="_blank" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md">
+        📖 Full Details
+      </a>
+      <a id="downloadBtn" href="#" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md hidden">
+        ⬇️ Download PDF
+      </a>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock %}

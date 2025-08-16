@@ -1,1 +1,5 @@
-django pillow requests django_widget_tweaks mysqlite
+django 
+pillow
+requests
+django_widget_tweaks
+mysqlite

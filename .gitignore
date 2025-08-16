@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+
+# Django
+db.sqlite3
+SCEP_LMS/.env
+
+# Static / Media
+staticfiles/
+media/
+
+# Virtual environments
+env/
+venv/

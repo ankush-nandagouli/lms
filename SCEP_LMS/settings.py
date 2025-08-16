@@ -6,6 +6,7 @@ Secure & production-ready version.
 import os
 from pathlib import Path
 from decouple import config, Csv
+import dj_database_url   # pip install dj-database-url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -72,19 +73,30 @@ WSGI_APPLICATION = 'SCEP_LMS.wsgi.application'
 # -------------------------
 # DATABASE
 # -------------------------
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='3306'),
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-        },
+if DEBUG:
+    # Local development (MySQL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': config('DB_NAME', default='scep_lms'),
+            'USER': config('DB_USER', default='librarian'),
+            'PASSWORD': config('DB_PASSWORD', default='Scep_lms'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='3306'),
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+            },
+        }
     }
-}
+else:
+    # Production (Railway PostgreSQL)
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
 
 # -------------------------
 # EMAIL
